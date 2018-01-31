@@ -27,34 +27,13 @@ Coordinate c = Coordinate(0.4f, 0.0f);
 
 vector<Coordinate> points = {a, b, c};
 
-
-
-
-
-                          
-
-
-
-
-
-/*
-    //Coordinate(GLfloat, GLfloat);
-    GLfloat get_y() {return y; };
-    GLfloat get_x() {return x; };
-};
-   
-
-Vertex::Vertex(GLfloat X, GLfloat Y){
+Vertex::Vertex(GLfloat X, GLfloat Y) {
     x = X;
     y = Y;
-};
-
-*/
+}
 
 void setup() {
-    
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // clears the screen
-    
 }
 
 
@@ -65,8 +44,6 @@ void display(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glColor3f(0.0f, 0.0f, 0.0f); //set our color to BLACK
-    
-
     
     vector<Vertex> v;
     
@@ -91,8 +68,8 @@ int main(int argc, char * argv[]) {
     glutInitWindowSize(800,600);
     glutCreateWindow("My Window");
     setup();
-    //glutDisplayFunc(display);
-    //glutMainLoop();
+    glutDisplayFunc(display);
+    glutMainLoop();
     GLfloat x=0.6, y=0.4;
     Coordinate P(x,y);
     std::cout << P.x<<"\n";
