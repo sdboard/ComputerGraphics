@@ -67,7 +67,7 @@ vector<Coordinate> generate_points(vector<Coordinate> control_points){
             toReturn.push_back((recurse[i]));
         }
         
-        toReturn.push_back(control_points[control_points.size()]);
+        toReturn.push_back(control_points[control_points.size()-1]);
         
         return toReturn;
     }
