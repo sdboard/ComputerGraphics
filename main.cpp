@@ -21,11 +21,7 @@ using namespace std;
 //    Coordinate(GLfloat x_, GLfloat y_) : x(x_), y(y_) {}
 //};
 
-Coordinate a = Coordinate(-0.4f, 0.0f);
-Coordinate b = Coordinate(0.0f, 0.6f);
-Coordinate c = Coordinate(0.4f, 0.0f);
 
-vector<Coordinate> points = {a, b, c};
 
 //Vertex::Vertex(GLfloat X, GLfloat Y) {
 //    x = X;
@@ -44,7 +40,7 @@ vector<Coordinate> generate_points(vector<Coordinate> control_points){
     } else {
         
         // Iterate through our control points
-        for (int p = 0; p < control_points.size(); p++) {
+        for (int p = 0; p < (control_points.size()-1); p++) {
             
             Coordinate v0 = control_points[p];
             
@@ -81,23 +77,48 @@ void setup() {
 
 
 void display(){
+    
+    Coordinate a = Coordinate(-0.6f, 0.0f);
+    Coordinate b = Coordinate(-0.4f, 0.6f);
+    Coordinate c = Coordinate(0.4f, 0.6f);
+    Coordinate d = Coordinate(0.6f, 0.0f);
+    
+    vector<Coordinate> points = {a, b, c, d};
+    
+    vector<Coordinate> newPoints;
+    
+    newPoints = generate_points(points);
+    
+    
+    
     //where we do all the drawings
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glColor3f(0.0f, 0.0f, 0.0f); //set our color to BLACK
     
-    vector<Vertex> v;
+    //vector<Vertex> v;
     
     glBegin(GL_LINES);
     
-    glVertex2f(-0.4f, 0.0f);
-    glVertex2f(0.0f, 0.6f);
-    
-    glVertex2f(0.0f, 0.6f);
-    glVertex2f(0.4f, 0.0f);
+    for (int i = 0; i < newPoints.size()-1; i++) {
+        
+    glVertex2f(newPoints[i].x, newPoints[i].y);
+    glVertex2f(newPoints[i+1].x, newPoints[i+1].y);
 
+//    glVertex2f(newPoints[2].x, newPoints[2].y);
+//    glVertex2f(newPoints[3].x, newPoints[3].y);
+
+//    glVertex2f(-0.4f, 0.0f);
+//    glVertex2f(0.0f, 0.6f);
+    }
+//    glVertex2f(0.0f, 0.6f);
+//    glVertex2f(0.4f, 0.0f);
+    
     glEnd();
     glutSwapBuffers();
+
+    
+    
 }
 
 
