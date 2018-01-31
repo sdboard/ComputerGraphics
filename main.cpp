@@ -16,10 +16,10 @@
 
 using namespace std;
 
-struct Coordinate{
-    GLfloat x, y;
-    Coordinate(GLfloat x_, GLfloat y_) : x(x_), y(y_) {}
-};
+//struct Coordinate{
+//    GLfloat x, y;
+//    Coordinate(GLfloat x_, GLfloat y_) : x(x_), y(y_) {}
+//};
 
 Coordinate a = Coordinate(-0.4f, 0.0f);
 Coordinate b = Coordinate(0.0f, 0.6f);
@@ -27,9 +27,50 @@ Coordinate c = Coordinate(0.4f, 0.0f);
 
 vector<Coordinate> points = {a, b, c};
 
-Vertex::Vertex(GLfloat X, GLfloat Y) {
-    x = X;
-    y = Y;
+//Vertex::Vertex(GLfloat X, GLfloat Y) {
+//    x = X;
+//    y = Y;
+//}
+
+
+vector<Coordinate> generate_points(vector<Coordinate> control_points){
+ 
+    vector<Coordinate> points;
+    
+    if (control_points.size() == 1) {
+        
+        return control_points;
+        
+    } else {
+        
+        // Iterate through our control points
+        for (int p = 0; p < control_points.size(); p++) {
+            
+            Coordinate v0 = control_points[p];
+            
+            Coordinate v1 = control_points[p+1];
+            
+            // Find the Midpoint
+            GLfloat newX = (v0.x + v1.x)/2;
+            GLfloat newY = (v0.y + v1.y)/2;
+            
+            
+            points.push_back(Coordinate(newX, newY));
+            
+        }
+        
+        vector<Coordinate> toReturn = {control_points[0]};
+        
+        vector<Coordinate> recurse = generate_points(points);
+        
+        for(int i = 0; i < recurse.size(); i++) {
+            toReturn.push_back((recurse[i]));
+        }
+        
+        toReturn.push_back(control_points[control_points.size()]);
+        
+        return toReturn;
+    }
 }
 
 void setup() {
