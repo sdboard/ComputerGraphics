@@ -69,6 +69,15 @@ vector<Coordinate> generate_points(vector<Coordinate> control_points){
     }
 }
 
+vector<Coordinate> recursive_call(vector<Coordinate> control_points){
+    vector<Coordinate> toReturn = generate_points(control_points);
+    for (int i = 0; i < 3; i ++){
+        toReturn = generate_points(toReturn);
+    }
+    
+    return toReturn;
+}
+
 void setup() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // clears the screen
 }
@@ -87,7 +96,7 @@ void display(){
     
     vector<Coordinate> newPoints;
     
-    newPoints = generate_points(points);
+    newPoints = recursive_call(points);
     
     
     
