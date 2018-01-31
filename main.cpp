@@ -16,19 +16,6 @@
 
 using namespace std;
 
-//struct Coordinate{
-//    GLfloat x, y;
-//    Coordinate(GLfloat x_, GLfloat y_) : x(x_), y(y_) {}
-//};
-
-
-
-//Vertex::Vertex(GLfloat X, GLfloat Y) {
-//    x = X;
-//    y = Y;
-//}
-
-
 vector<Coordinate> generate_points(vector<Coordinate> control_points){
  
     vector<Coordinate> points;
@@ -86,6 +73,8 @@ void setup() {
 
 
 void display(){
+    //drawings
+    
     
     Coordinate a = Coordinate(-0.6f, 0.0f);
     Coordinate b = Coordinate(-0.4f, 0.6f);
@@ -100,12 +89,11 @@ void display(){
     
     
     
-    //where we do all the drawings
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glColor3f(0.0f, 0.0f, 0.0f); //set our color to BLACK
     
-    //vector<Vertex> v;
     
     glBegin(GL_LINES);
     
@@ -114,14 +102,15 @@ void display(){
     glVertex2f(newPoints[i].x, newPoints[i].y);
     glVertex2f(newPoints[i+1].x, newPoints[i+1].y);
 
-//    glVertex2f(newPoints[2].x, newPoints[2].y);
-//    glVertex2f(newPoints[3].x, newPoints[3].y);
-
-//    glVertex2f(-0.4f, 0.0f);
-//    glVertex2f(0.0f, 0.6f);
     }
-//    glVertex2f(0.0f, 0.6f);
-//    glVertex2f(0.4f, 0.0f);
+    
+    glVertex2f(a.x, a.y);
+    glVertex2f(b.x, b.y);
+    glVertex2f(b.x, b.y);
+    glVertex2f(c.x, c.y);
+    glVertex2f(c.x, c.y);
+    glVertex2f(d.x, d.y);
+
     
     glEnd();
     glutSwapBuffers();
