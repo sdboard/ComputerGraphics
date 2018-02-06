@@ -10,4 +10,4 @@ where ```5``` is the number of points you want to estimate a curve with.
 Then go to Terminal, go to your MATLAB folder (usually in /Documents) and ```nano pointspoints.txt```   
 You should see some c++ which can be easily placed in main.cpp. Just update the ```vector<vector>``` toTour to include the ```newPoints__``` vector. 
 
-<img src="images/oie_124645G3I2Cvl3-1.jpg" width="300" hspace="5">
+<img src="https://www.iaspaper.net/wp-content/uploads/2017/01/Mahatma-Gandhi-2.jpg" width="300" hspace="5">
