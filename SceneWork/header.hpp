@@ -43,13 +43,15 @@ std::vector<GLfloat> mat_mult(std::vector<GLfloat> A, std::vector<GLfloat> B);
 
 void setup();
 
-void display_func(GLfloat vertices[]);
+void display_func();
 
-std::vector<std::vector<GLfloat>> build_cube();
+void idle_func();
+
+std::vector<GLfloat> build_cube();
 
 void init_camera();
 
-GLfloat* init_scene();
+std::vector<GLfloat> init_scene();
 
 GLfloat* init_color();
 
