@@ -8,7 +8,6 @@
 ***/
 
 
-
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -23,7 +22,18 @@
 #include <vector>
 #include "header.hpp"
 #include <cassert>
+#include <stdlib.h>
 using namespace std;
+float theta = 0.0;
+int numPoints;
+GLfloat* vertices;
+GLfloat* paint;
+vector<GLfloat> cubeVerts;
+GLfloat colors[] = {
+    // O R A N G E
+    1.0,    0.627,   0.478,
+};
+
 
 /**************************************************
  *  Rectangular Prisms via Hierarchical Modeling  *
@@ -231,8 +241,8 @@ vector<GLfloat> mat_mult(vector<GLfloat> A, vector<GLfloat> B) {
 }
 
 // Builds a unit cube of side length 'sl' centered at the origin
-vector<GLfloat> build_cube(GLfloat sl) {
-    GLfloat a = sl/2;
+vector<GLfloat> build_cube() {
+    GLfloat a = 1.0;
     
     // instantiate the vector square plane to be d
     vector<GLfloat> init_plane = {
@@ -247,128 +257,26 @@ vector<GLfloat> build_cube(GLfloat sl) {
     // Creates a unit cube by transforming a set of planes
     
     vector<GLfloat> front = translate(0.0, 0.0, a, init_plane);
-    
-    vector<GLfloat> test_front = {
-        +a,   +a,   +a,
-        +a,   -a,   +a,
-        -a,   -a,   +a,
-        -a,   +a,   +a
-    };
-    
-    
-    bool same = true;
-    for (int i = 0; i < front.size(); i++) {
-        if (front[i] != test_front[i]) {
-            same = false;
-            i = (int)front.size();
-        }
-        //lastRes.push_back(curVec[j]);
-    }
-    
-    if (same) std::cout << "\n front plane passed \n";
-    
+
     result.push_back(front);
     
     vector<GLfloat> back = translate(0.0, 0.0, -a, rotate('y', 180, init_plane));
-    
-    vector<GLfloat> test_back = {
-        -a,   +a,   -a,
-        -a,   -a,   -a,
-        +a,   -a,   -a,
-        +a,   +a,   -a
-    };
-    
-    for (int i = 0; i < back.size(); i++) {
-        if (back[i] != test_back[i]) {
-            same = false;
-            i = (int)back.size();
-        }
-    }
-    
-    if (same) std::cout << "\n back plane passed \n";
-    
+
     result.push_back(back);
     
     vector<GLfloat> left = translate(-a, 0.0, 0.0, rotate('y', -90, init_plane));
-    
-    vector<GLfloat> test_left = {
-        -a,   +a,   +a,
-        -a,   -a,   +a,
-        -a,   -a,   -a,
-        -a,   +a,   -a
-    };
-    
-    for (int i = 0; i < left.size(); i++) {
-        if (left[i] != test_left[i]) {
-            same = false;
-            i = (int)left.size();
-            
-        }
-    }
-    
-    if (same) std::cout << "\n left plane passed \n";
-    
+
     result.push_back(left);
     
     vector<GLfloat> right = translate(a, 0.0, 0.0, rotate('y', +90, init_plane));
-    
-    vector<GLfloat> test_right = {
-        +a,   +a,   -a,
-        +a,   -a,   -a,
-        +a,   -a,   +a,
-        +a,   +a,   +a
-    };
-
-    for (int i = 0; i < right.size(); i++) {
-        if (right[i] != test_right[i]) {
-            same = false;
-            i = (int)right.size();
-        }
-    }
-    
-    if (same) std::cout << "\n right plane passed \n";
     
     result.push_back(right);
     
     vector<GLfloat> top = translate(0.0, a, 0.0,rotate('x', +90, init_plane));
     
-    vector<GLfloat> test_top = {
-        +a,   +a,   +a,
-        +a,   +a,   -a,
-        -a,   +a,   -a,
-        -a,   +a,   +a
-    };
-    
-    for (int i = 0; i < top.size(); i++) {
-        if ((int)top[i] != (int)test_top[i]) {
-            same = false;
-            std::cout << i << "\n";
-            std::cout << top[i] << "\n";
-        }
-    }
-    
-    if (same) std::cout << "\n top plane passed \n";
-    
     result.push_back(top);
     
     vector<GLfloat> bot =  translate(0.0, -a, 0.0, rotate('x', -90, init_plane));
-    
-    vector<GLfloat> test_bot = {
-        +a,   -a,   -a,
-        +a,   -a,   +a,
-        -a,   -a,   +a,
-        -a,   -a,   -a
-    };
-    
-    for (int i = 0; i < bot.size(); i++) {
-        if ((int)bot[i] != (int)test_bot[i]) {
-            same = false;
-            std::cout << i << "\n";
-            std::cout << bot[i] << "\n";
-        }
-    }
-    
-    if (same) std::cout << "\n bottom plane passed \n";
     
     result.push_back(bot);
     
@@ -425,13 +333,23 @@ void init_camera() {
 }
 
 // Construct the scene using objects built from cubes/prisms
-GLfloat* init_scene() {
-    return nullptr;
+vector<GLfloat> init_scene() {
+    return scale(0.3, 0.3, 0.3, build_cube());
 }
 
 // Construct the color mapping of the scene
-GLfloat* init_color() {
-    return nullptr;
+GLfloat* init_color(vector<GLfloat> vertices) {
+    GLfloat* arr = new GLfloat[vertices.size()];
+    int j = 0;
+//    std::cout<<vertices.size()<<"\n";
+    for (int i = 0; i < vertices.size(); i++) {
+        double iRand = rand() % 300;
+        GLfloat iNoise = (float) (iRand/1000) + 0.75;
+        arr[i] = colors[j%3]*iNoise;
+        j++;
+    }
+    
+    return arr;
 }
 
 void display_func() {
@@ -440,47 +358,10 @@ void display_func() {
     // World model parameters
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
-    GLfloat colors[] = {
-        // Front plane
-        1.0,    0.0,    0.0,
-        1.0,    0.0,    0.0,
-        1.0,    0.0,    0.0,
-        1.0,    0.0,    0.0,
-        // Back plane
-        0.0,    1.0,    0.0,
-        0.0,    1.0,    0.0,
-        0.0,    1.0,    0.0,
-        0.0,    1.0,    0.0,
-        // Right
-        0.0,    0.0,    1.0,
-        0.0,    0.0,    1.0,
-        0.0,    0.0,    1.0,
-        0.0,    0.0,    1.0,
-        // Left
-        1.0,    1.0,    0.0,
-        1.0,    1.0,    0.0,
-        1.0,    1.0,    0.0,
-        1.0,    1.0,    0.0,
-        // Top
-        1.0,    0.0,    1.0,
-        1.0,    0.0,    1.0,
-        1.0,    0.0,    1.0,
-        1.0,    0.0,    1.0,
-        // Bottom
-        0.0,    1.0,    1.0,
-        0.0,    1.0,    1.0,
-        0.0,    1.0,    1.0,
-        0.0,    1.0,    1.0,
-    };
     
-//    // Perform display functions
-    vector<GLfloat> cubeVerts = build_cube(2.0);
-
-//    GLfloat* vertices = new GLfloat[6*4*3];
-//    vertices = vector2array(cubeVerts);
+    glRotatef(theta/3, 0.0, 1.0, 0.0);
     
-    GLfloat* vertices = vector2array(cubeVerts);
+    // Perform display functions
     
     glVertexPointer(3,          // 3 components (x, y, z)
                     GL_FLOAT,   // Vertex type is GL_FLOAT
@@ -491,79 +372,32 @@ void display_func() {
     glColorPointer(3,           // 3 components (r, g, b)
                    GL_FLOAT,    // Vertex type is GL_FLOAT
                    0,           // Start position in referenced memory
-                   colors);     // Pointer to memory location to read from
+                   paint);     // Pointer to memory location to read from
 
-    glDrawArrays(GL_QUADS, 0, 6*4); // six planes of 4 points each.
-
-    delete[] vertices;
-//
+    glDrawArrays(GL_QUADS, 0, numPoints);
     glFlush();			//Finish rendering
     glutSwapBuffers();
 }
 
-//****************************************************************************************
-//****************************************************************************************
-//****************************************************************************************
+
+void idle_func() {
+    theta = theta+3.0;
+    display_func();
+}
 //****************************************************************************************
 //****************************************************************************************
 //****************************************************************************************
 
 int main (int argc, char **argv) {
-
-//    std::cout << "start" << " \n";
-    
-//    vector<GLfloat> verts = init_unit_plane();
-//    int a = (int)verts.size();
-////    std::cout << a <<"\n\n";
-//    for (int i = 0; i < (int)verts.size(); i++ ){
-//        if ( (i+1) % 3 == 0){
-//            std::cout << verts[i] << "\n";
-//        } else {
-//            std::cout << verts[i] << " ";
-//        }
-//    }
-    
-    
-//    vector<GLfloat> out = mat_mult(translate(0.0, 0.0, 1.0),  mat_mult(rotate('z', 90.0), to_homogenous_coord(verts)));
-//    std::cout <<  (int)out.size() <<"\n\n";
-//    for (int i = 0; i < (int)out.size(); i++ ){
-//        if ( (i+1) % 4 == 0){
-//            std::cout << out[i] << " \n";
-//        } else {
-//            std::cout << out[i] << " ";
-//        }
-//    }
-    
-//    vector<vector<GLfloat>> testvec = {verts, to_cartesian_coord(out)};
-//    
-//    GLfloat* vertices = new GLfloat[2*verts.size()];
-//    
-//    vertices = vector2array(testvec);
-//    
-//    std::cout << "\n\n here \n here" << " \n";
-//
-//    for (int i = 0; i < 2*(int)verts.size(); i++ ){
-//        if ( (i+1) % 3 == 0){
-//            std::cout << vertices[i] <<" \n";
-//        } else {
-//            std::cout << vertices[i] << " ";
-//        }
-//    }
-
-//    std::cout << "\n\n here \n here" << " ";
-//    
-//    
-//    
-//    GLfloat* test = new GLfloat[16];
-////    test = vector2array(out);
-//    
-//    std::cout << "\n\n end start" << " \n";
     
     // Remember to call "delete" on your dynmically allocated arrays
     // such that you don't suffer from memory leaks. e.g.
     // delete arr;
-
-    
+    cubeVerts = init_scene();
+    numPoints = (int)cubeVerts.size()/3;
+    std::cout<<numPoints<<"\n";
+    vertices = vector2array(cubeVerts);
+    paint = init_color(cubeVerts);
     // Initialize GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -576,151 +410,11 @@ int main (int argc, char **argv) {
     
     //     Set up our display function
     glutDisplayFunc(display_func);
+    glutIdleFunc(idle_func);
+    
     // Render our world
     glutMainLoop();
-    
-    
+    delete[] vertices;
+    delete[] paint;
     return 0;
 }
-
-/*
-Throw code here
-
-
-
- 
- 
-
- Returns a rotation matrix about the y-axis by theta degrees
- inputs: theta in degrees
-
-vector<GLfloat> rotate_y (double theta) {
-    theta = theta * 3.1415926536 / 180; //convert to radians
-    GLfloat costheta = (GLfloat) cos(theta);
-    GLfloat sintheta = (GLfloat) sin(theta);
-    
-    vector<GLfloat> rotate_mat_y = {
-        costheta, 0.0, sintheta, 0.0,
-        0.0, 1.0, 0.0, 0.0,
-        -sintheta,  0.0, costheta, 0.0,
-        0.0, 0.0, 0.0, 1.0
-    };
-    return rotate_mat_y;
-}
-
-
- Returns a rotation matrix about the z-axis by theta degrees
- inputs: theta in degrees
- 
-vector<GLfloat> rotate_z (double theta) {
-    theta = theta * 3.1415926536 / 180; //convert to radians
-    GLfloat costheta = (GLfloat) cos(theta);
-    GLfloat sintheta = (GLfloat) sin(theta);
-    
-    vector<GLfloat> rotate_mat_z = {
-        costheta, -sintheta, 0.0, 0.0,
-        sintheta, costheta, 0.0, 0.0,
-        0.0, 0.0, 1.0, 0.0,
-        0.0, 0.0, 0.0, 1.0
-    };
-    return rotate_mat_z;
-}
-
- 
- 
- 
- void init_camera() {
- // Camera parameters
- glMatrixMode(GL_PROJECTION);
- glLoadIdentity();
- }
-
- 
- 
- //    for (int i = 0; i < 24; i++) {
- //        int temp = (int)vertices[i];
- //        std::cout<< temp;
- //        delete temp;
- //    }
- 
- 
- //
- //    glColorPointer(3,           // 3 components (r, g, b)
- //                   GL_FLOAT,    // Vertex type is GL_FLOAT
- //                   0,           // Start position in referenced memory
- //                   colors);     // Pointer to memory location to read from
- //
-
-
-
-
- //    vector<GLfloat> verts = init_unit_plane();
- //    int a = (int)verts.size();
- //    std::cout << a <<"\n";
- //
- //    for (int i = 1; i < (int)verts.size() + 1; i++ ){
- //        if ( i % 3 == 0){
- //            std::cout << verts[i-1] <<" \n";
- //        } else {
- //            std::cout << verts[i-1] << " ";
- //        }
- //    }
- //
- //    GLfloat* arr = new GLfloat[4];
- //    arr[0] = 0.0;
- //    arr[1] = 1.0;
- //    arr[2] = 1.5;
- //    arr[3] = 2.5;
- //
- //    //int a = length(arr);
- //
- //    std::cout << arr << "\n";
- //
- //    delete[] arr;
- //
- //    vector<GLfloat> homs = to_homogenous_coord(verts);
- //
- //    int b = (int)homs.size();
- //    std::cout << b <<"\n\n";
- //
- //    for (int j = 1; j < (int)homs.size() + 1; j++ ){
- //        if ( j % 4 == 0){
- //            std::cout << homs[j-1] <<" \n";
- //        } else {
- //            std::cout << homs[j-1] << " ";
- //        }
- //    }
- //
- //
- //    std::cout << "\n ok \n\n";
- //
- //
- //    vector<GLfloat> same = mat_mult(ident(), homs);
- //
- //    int d = (int)same.size();
- //    std::cout << d <<"\n";
- //
- //    for (int l = 1; l < (int)same.size() + 1; l++ ){
- //        if ( l % 4 == 0){
- //            std::cout << same[l-1] <<" \n";
- //        } else {
- //            std::cout << same[l-1] << " ";
- //        }
- //    }
- //    
- //    std::cout << "\n\n";
- 
- 
- std::cout << "\n\nverticies " << " \n\n";
- 
- for (int i = 0; i < 72; i++) {
- std::cout << "num " << i << " ";
- if ((i+1)%3 == 0) {
- std::cout << (int)vertices[i] << " \n";
- } else {
- std::cout << (int)vertices[i] << " ";
- }
- }
- 
-
-*/
