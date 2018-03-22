@@ -1,15 +1,7 @@
 /***
  Assignment-2: Geometric Modeling of a Scene
 
- Name: Wong, Alex (Please write your name in Last Name, First Name format)
-
- Collaborators: Doe, John; Doe, Jane
- ** Note: although the assignment should be completed individually
- you may speak with classmates on high level algorithmic concepts. Please
- list their names in this section
-
- Project Summary: A short paragraph (3-4 sentences) describing the work you
- did for the project.
+ - Name: Board, Stephen
 ***/
 
 
