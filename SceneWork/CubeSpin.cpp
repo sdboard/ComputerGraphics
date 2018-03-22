@@ -1,11 +1,17 @@
 /***
  Assignment-2: Geometric Modeling of a Scene
 
- Name: Board, Stephen
+ Name: Wong, Alex (Please write your name in Last Name, First Name format)
 
- Project Summary: This will make a scene. Firt commit to github currently since I have done the basics including testing.
+ Collaborators: Doe, John; Doe, Jane
+ ** Note: although the assignment should be completed individually
+ you may speak with classmates on high level algorithmic concepts. Please
+ list their names in this section
 
+ Project Summary: A short paragraph (3-4 sentences) describing the work you
+ did for the project.
 ***/
+
 
 
 #ifdef __APPLE__
@@ -28,10 +34,14 @@ float theta = 0.0;
 int numPoints;
 GLfloat* vertices;
 GLfloat* paint;
-vector<GLfloat> cubeVerts;
-GLfloat colors[] = {
+vector<GLfloat> heartVerts;
+GLfloat colorOR[] = {
     // O R A N G E
     1.0,    0.627,   0.478,
+};
+GLfloat colorYE[] = {
+    // Y E L L O W
+    1.0,    1.0,   0.0,
 };
 
 
@@ -329,13 +339,160 @@ void init_camera() {
     // Define a 50 degree field of view, 1:1 aspect ratio, near and far planes at 3 and 7
     gluPerspective(50.0, 1.0, 2.0, 10.0);
     // Position camera at (2, 3, 5), attention at (0, 0, 0), up at (0, 1, 0)
-    gluLookAt(2.0, 6.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(1.0, 0.3, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 // Construct the scene using objects built from cubes/prisms
-vector<GLfloat> init_scene() {
-    return scale(0.3, 0.3, 0.3, build_cube());
+vector<GLfloat> init_heart() {
+    vector<vector<GLfloat>> heart_cross;
+    vector<GLfloat> unit_obj = scale(0.1, 0.1, 0.1, build_cube());
+    
+    //center
+    heart_cross.push_back(translate(0.0,0.42,0.0,unit_obj));
+    heart_cross.push_back(translate(0.15,0.64,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.15,0.64,0.0,unit_obj));
+    heart_cross.push_back(translate(0.37,0.79,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.37,0.79,0.0,unit_obj));
+    heart_cross.push_back(translate(0.61,0.84,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.61,0.84,0.0,unit_obj));
+    heart_cross.push_back(translate(0.78,0.63,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.78,0.63,0.0,unit_obj));
+    heart_cross.push_back(translate(0.84,0.415,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.84,0.415,0.0,unit_obj));
+    heart_cross.push_back(translate(0.82,0.19,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.82,0.19,0.0,unit_obj));
+    heart_cross.push_back(translate(0.78,-0.03,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.78,-0.03,0.0,unit_obj));
+    heart_cross.push_back(translate(0.69,-0.25,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.69,-0.25,0.0,unit_obj));
+    heart_cross.push_back(translate(0.6,-0.47,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.6,-0.47,0.0,unit_obj));
+    heart_cross.push_back(translate(0.43,-0.7,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.43,-0.7,0.0,unit_obj));
+    heart_cross.push_back(translate(0.23,-0.92,0.0,unit_obj));
+    heart_cross.push_back(translate(-0.23,-0.92,0.0,unit_obj));
+    heart_cross.push_back(translate(0.0,-1.1,0.0,unit_obj));
+    
+//   +1
+    heart_cross.push_back(translate(0.14,0.55,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.14,0.55,0.21,unit_obj));
+    heart_cross.push_back(translate(0.35,0.7,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.35,0.7,0.21,unit_obj));
+    heart_cross.push_back(translate(0.55,0.63,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.55,0.63,0.21,unit_obj));
+    heart_cross.push_back(translate(0.63,0.415,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.63,0.415,0.21,unit_obj));
+    heart_cross.push_back(translate(0.61,0.19,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.61,0.19,0.21,unit_obj));
+    heart_cross.push_back(translate(0.58,-0.03,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.58,-0.03,0.21,unit_obj));
+    heart_cross.push_back(translate(0.47,-0.25,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.47,-0.25,0.21,unit_obj));
+    heart_cross.push_back(translate(0.34,-0.47,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.34,-0.47,0.21,unit_obj));
+    heart_cross.push_back(translate(0.22,-0.7,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.22,-0.7,0.21,unit_obj));
+    heart_cross.push_back(translate(0.1,-0.92,0.21,unit_obj));
+    heart_cross.push_back(translate(-0.1,-0.92,0.21,unit_obj));
+
+//    -1
+    heart_cross.push_back(translate(0.14,0.55,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.14,0.55,-0.21,unit_obj));
+    heart_cross.push_back(translate(0.35,0.7,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.35,0.7,-0.21,unit_obj));
+    heart_cross.push_back(translate(0.55,0.63,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.55,0.63,-0.21,unit_obj));
+    heart_cross.push_back(translate(0.63,0.415,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.63,0.415,-0.21,unit_obj));
+    heart_cross.push_back(translate(0.61,0.19,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.61,0.19,-0.21,unit_obj));
+    heart_cross.push_back(translate(0.58,-0.03,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.58,-0.03,-0.21,unit_obj));
+    heart_cross.push_back(translate(0.47,-0.25,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.47,-0.25,-0.21,unit_obj));
+    heart_cross.push_back(translate(0.34,-0.47,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.34,-0.47,-0.21,unit_obj));
+    heart_cross.push_back(translate(0.22,-0.7,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.22,-0.7,-0.21,unit_obj));
+    heart_cross.push_back(translate(0.1,-0.92,-0.21,unit_obj));
+    heart_cross.push_back(translate(-0.1,-0.92,-0.21,unit_obj));
+ 
+    
+//    +2
+    heart_cross.push_back(translate(0.15,0.5,0.36,scale(1.0,1.0,0.5,unit_obj)));
+    heart_cross.push_back(translate(-0.15,0.5,0.36,scale(1.0,1.0,0.5,unit_obj)));
+    heart_cross.push_back(translate(0.4,0.42,0.32,unit_obj));
+    heart_cross.push_back(translate(-0.4,0.42,0.32,unit_obj));
+    heart_cross.push_back(translate(0.43,0.19,0.32,unit_obj));
+    heart_cross.push_back(translate(-0.43,0.19,0.32,unit_obj));
+    heart_cross.push_back(translate(0.38,-0.03,0.32,unit_obj));
+    heart_cross.push_back(translate(-0.38,-0.03,0.32,unit_obj));
+    heart_cross.push_back(translate(0.27,-0.25,0.32,unit_obj));
+    heart_cross.push_back(translate(-0.27,-0.25,0.32,unit_obj));
+    heart_cross.push_back(translate(0.14,-0.47,0.32,unit_obj));
+    heart_cross.push_back(translate(-0.14,-0.47,0.32,unit_obj));
+    heart_cross.push_back(translate(0.0,-0.7,0.32,unit_obj));
+    
+    //    -2
+    heart_cross.push_back(translate(0.15,0.5,-0.36,scale(1.0,1.0,0.5,unit_obj)));
+    heart_cross.push_back(translate(-0.15,0.5,-0.36,scale(1.0,1.0,0.5,unit_obj)));
+    heart_cross.push_back(translate(0.4,0.42,-0.32,unit_obj));
+    heart_cross.push_back(translate(-0.4,0.42,-0.32,unit_obj));
+    heart_cross.push_back(translate(0.43,0.19,-0.32,unit_obj));
+    heart_cross.push_back(translate(-0.43,0.19,-0.32,unit_obj));
+    heart_cross.push_back(translate(0.38,-0.03,-0.32,unit_obj));
+    heart_cross.push_back(translate(-0.38,-0.03,-0.32,unit_obj));
+    heart_cross.push_back(translate(0.27,-0.25,-0.32,unit_obj));
+    heart_cross.push_back(translate(-0.27,-0.25,-0.32,unit_obj));
+    heart_cross.push_back(translate(0.14,-0.47,-0.32,unit_obj));
+    heart_cross.push_back(translate(-0.14,-0.47,-0.32,unit_obj));
+    heart_cross.push_back(translate(0.0,-0.7,-0.32,unit_obj));
+    
+   
+//    +3
+    heart_cross.push_back(translate(0.15,0.33,0.38,scale(1.0,0.6,1.0,unit_obj)));
+    heart_cross.push_back(translate(-0.15,0.33,0.38,scale(1.0,0.6,1.0,unit_obj)));
+    heart_cross.push_back(translate(0.18,0.16,0.39,unit_obj));
+    heart_cross.push_back(translate(-0.18,0.16,0.39,unit_obj));
+    heart_cross.push_back(translate(0.17,-0.07,0.39,unit_obj));
+    heart_cross.push_back(translate(-0.17,-0.07,0.39,unit_obj));
+    heart_cross.push_back(translate(0.0,-0.27,0.39,unit_obj));
+    
+    heart_cross.push_back(translate(0.0,0.155,0.42,scale(0.5,0.95,1.0,unit_obj)));
+    heart_cross.push_back(translate(0.0,-0.06,0.42,scale(0.5,0.9,1.0,unit_obj)));
+    heart_cross.push_back(translate(0.0,0.33,0.4,scale(0.5,0.5,1.0,unit_obj)));
+
+    //    -3
+    heart_cross.push_back(translate(0.15,0.33,-0.38,scale(1.0,0.6,1.0,unit_obj)));
+    heart_cross.push_back(translate(-0.15,0.33,-0.38,scale(1.0,0.6,1.0,unit_obj)));
+    heart_cross.push_back(translate(0.18,0.16,-0.39,unit_obj));
+    heart_cross.push_back(translate(-0.18,0.16,-0.39,unit_obj));
+    heart_cross.push_back(translate(0.17,-0.07,-0.39,unit_obj));
+    heart_cross.push_back(translate(-0.17,-0.07,-0.39,unit_obj));
+    heart_cross.push_back(translate(0.0,-0.27,-0.39,unit_obj));
+    
+    heart_cross.push_back(translate(0.0,0.155,-0.42,scale(0.5,0.95,1.0,unit_obj)));
+    heart_cross.push_back(translate(0.0,-0.06,-0.42,scale(0.5,0.9,1.0,unit_obj)));
+    heart_cross.push_back(translate(0.0,0.33,-0.4,scale(0.5,0.5,1.0,unit_obj)));
+
+    vector<GLfloat> scene;
+    for (int i = 0; i < heart_cross.size(); i++) {
+        vector<GLfloat> curVec = heart_cross[i];
+        for (int j = 0; j < curVec.size(); j++) {
+            scene.push_back(curVec[j]);
+        }
+    }
+    scene = translate(1.2, -0.6, -2.4, scale(0.4, 0.4, 0.4, scene));
+    return scene;
 }
+
+// Construct the scene using objects built from cubes/prisms
+void spin_heart(double theta) {
+    heartVerts = translate(1.2, -0.6, -2.4, rotate('y',theta,translate(-1.2, 0.6, 2.4, heartVerts)));
+    vertices = vector2array(heartVerts);
+    //return cubeVerts;
+}
+
 
 // Construct the color mapping of the scene
 GLfloat* init_color(vector<GLfloat> vertices) {
@@ -345,7 +502,7 @@ GLfloat* init_color(vector<GLfloat> vertices) {
     for (int i = 0; i < vertices.size(); i++) {
         double iRand = rand() % 300;
         GLfloat iNoise = (float) (iRand/1000) + 0.75;
-        arr[i] = colors[j%3]*iNoise;
+        arr[i] = colorOR[j%3]*iNoise;
         j++;
     }
     
@@ -358,8 +515,9 @@ void display_func() {
     // World model parameters
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    
-    glRotatef(theta/3, 0.0, 1.0, 0.0);
+    spin_heart(5);
+//    glRotatef(theta/3, 0.0, 1.0, 0.0);
+//    glRotatef(theta/2, 1.0, 0.0, 0.0);
     
     // Perform display functions
     
@@ -381,7 +539,7 @@ void display_func() {
 
 
 void idle_func() {
-    theta = theta+3.0;
+//    theta = theta+1.0;
     display_func();
 }
 //****************************************************************************************
@@ -393,11 +551,11 @@ int main (int argc, char **argv) {
     // Remember to call "delete" on your dynmically allocated arrays
     // such that you don't suffer from memory leaks. e.g.
     // delete arr;
-    cubeVerts = init_scene();
-    numPoints = (int)cubeVerts.size()/3;
+    heartVerts = init_heart();
+    numPoints = (int)heartVerts.size()/3;
     std::cout<<numPoints<<"\n";
-    vertices = vector2array(cubeVerts);
-    paint = init_color(cubeVerts);
+    vertices = vector2array(heartVerts);
+    paint = init_color(heartVerts);
     // Initialize GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -410,7 +568,7 @@ int main (int argc, char **argv) {
     
     //     Set up our display function
     glutDisplayFunc(display_func);
-    glutIdleFunc(idle_func);
+    glutIdleFunc(idle_func);  
     
     // Render our world
     glutMainLoop();
