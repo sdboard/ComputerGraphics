@@ -1,10 +1,13 @@
-/***
+/***************************************************************************************************************
  Assignment-2: Geometric Modeling of a Scene
 
- - Name: Board, Stephen
-***/
-
-
+  Name: Board, Stephen
+ 
+  Project Summary: This will make a scene consisting of objects composed of rudimentary objects such as a cube
+                    or diamond
+  Collaborators: Wong, Alex (Professor)
+ 
+ ****************************************************************************************************************/
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -24,14 +27,23 @@
 using namespace std;
 float theta = 0.0;
 int numPoints;
-GLfloat* vertices;
-GLfloat* paint;
-vector<GLfloat> heartVerts;
-GLfloat colorOR[] = {
+int num_heart_Points;
+int num_star_Points;
+double star_point = -2.236;
+GLfloat h;
+GLfloat* scene_vertices;
+GLfloat* heart_vertices;
+GLfloat* star_vertices;
+GLfloat* heart_paint;
+GLfloat* star_paint;
+vector<GLfloat> scene_Vector;
+vector<GLfloat> heart_Vector;
+vector<GLfloat> star_Vector;
+vector<GLfloat> colorOR = {
     // O R A N G E
     1.0,    0.627,   0.478,
 };
-GLfloat colorYE[] = {
+vector<GLfloat> colorYE = {
     // Y E L L O W
     1.0,    1.0,   0.0,
 };
@@ -242,6 +254,79 @@ vector<GLfloat> mat_mult(vector<GLfloat> A, vector<GLfloat> B) {
     return result;
 }
 
+vector<vector<GLfloat>> double_concat(vector<vector<GLfloat>> A, vector<vector<GLfloat>> B) {
+    vector<vector<GLfloat>> result;
+    
+    for (int i = 0; i < A.size(); i++) {
+        result.push_back(A[i]);
+    }
+    
+    for (int i = 0; i < B.size(); i++) {
+        result.push_back(B[i]);
+    }
+    
+    return result;
+}
+
+vector<GLfloat> double_to_single(vector<vector<GLfloat>> A) {
+    vector<GLfloat> result;
+    
+    for (int i = 0; i < A.size(); i++) {
+        vector<GLfloat> curVec = A[i];
+        for (int j = 0; j < curVec.size(); j++) {
+            result.push_back(curVec[j]);
+        }
+    }
+    
+    return result;
+}
+
+vector<GLfloat> build_diamond() {
+    GLfloat a = sqrtf(2.0)/2;
+    
+    vector<GLfloat> init_plane = {
+        +a,   +0.0,   +0.0,
+        -a,   +0.0,   +0.0,
+        +0.0,   +2*a,   +0.0,
+    };
+    
+    vector<vector<GLfloat>> parts;
+    vector<GLfloat> topfront = translate(0.0, 0.0, +a, rotate('x',-30,init_plane));
+    parts.push_back(topfront);
+    
+    vector<GLfloat> topback = translate(0.0, 0.0, -a, rotate('x',+30,rotate('y',180,init_plane)));
+    parts.push_back(topback);
+    
+    vector<GLfloat> topright = translate(+a, 0.0, 0.0, rotate('z',+30,rotate('y',+90,init_plane)));
+    parts.push_back(topright);
+    
+    vector<GLfloat> topleft = translate(-a, 0.0, 0.0, rotate('z',-30,rotate('y',-90,init_plane)));
+    parts.push_back(topleft);
+    
+    vector<GLfloat> botfront = translate(0.0, 0.0, +a, rotate('x',+30,rotate('z',180,init_plane)));
+    parts.push_back(botfront);
+    
+    vector<GLfloat> botback = translate(0.0, 0.0, -a, rotate('x',-30,rotate('y',180,rotate('z',180,init_plane))));
+    parts.push_back(botback);
+    
+    vector<GLfloat> botright = translate(+a, 0.0, 0.0, rotate('z',-30,rotate('y',+90,rotate('z',180,init_plane))));
+    parts.push_back(botright);
+    
+    vector<GLfloat> botleft = translate(-a, 0.0, 0.0, rotate('z',+30,rotate('y',-90,rotate('z',180,init_plane))));
+    parts.push_back(botleft);
+    
+    vector<GLfloat> result;
+    for (int i = 0; i < parts.size(); i++) {
+        vector<GLfloat> curVec = parts[i];
+        for (int j = 0; j < curVec.size(); j++) {
+            result.push_back(curVec[j]);
+        }
+    }
+    result = scale(0.1, 0.1, 0.1, result);
+    return result;
+}
+
+
 // Builds a unit cube of side length 'sl' centered at the origin
 vector<GLfloat> build_cube() {
     GLfloat a = 1.0;
@@ -259,27 +344,21 @@ vector<GLfloat> build_cube() {
     // Creates a unit cube by transforming a set of planes
     
     vector<GLfloat> front = translate(0.0, 0.0, a, init_plane);
-
     result.push_back(front);
     
     vector<GLfloat> back = translate(0.0, 0.0, -a, rotate('y', 180, init_plane));
-
     result.push_back(back);
     
     vector<GLfloat> left = translate(-a, 0.0, 0.0, rotate('y', -90, init_plane));
-
     result.push_back(left);
     
     vector<GLfloat> right = translate(a, 0.0, 0.0, rotate('y', +90, init_plane));
-    
     result.push_back(right);
     
     vector<GLfloat> top = translate(0.0, a, 0.0,rotate('x', +90, init_plane));
-    
     result.push_back(top);
     
     vector<GLfloat> bot =  translate(0.0, -a, 0.0, rotate('x', -90, init_plane));
-    
     result.push_back(bot);
     
     vector<GLfloat> lastRes;
@@ -331,174 +410,253 @@ void init_camera() {
     // Define a 50 degree field of view, 1:1 aspect ratio, near and far planes at 3 and 7
     gluPerspective(50.0, 1.0, 2.0, 10.0);
     // Position camera at (2, 3, 5), attention at (0, 0, 0), up at (0, 1, 0)
-    gluLookAt(1.0, 0.3, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+}
+
+vector<vector<GLfloat>> init_star() {
+    vector<vector<GLfloat>> star_heap;
+    vector<GLfloat> unit_diamond = scale(0.7, 0.7, 0.7, build_diamond());
+//    vector<GLfloat> unit_diamond = build_diamond();
+    star_heap.push_back(unit_diamond);
+    star_heap.push_back(translate(0.0, 0.7, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.35, -0.55, 0.0, unit_diamond));
+    star_heap.push_back(translate(+0.35, -0.55, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.5, +0.25, 0.0, unit_diamond));
+    star_heap.push_back(translate(+0.5, +0.25, 0.0, unit_diamond));
+    
+    star_heap.push_back(translate(+0.35, +0.25, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.35, +0.25, 0.0, unit_diamond));
+    star_heap.push_back(translate(+0.2, +0.25, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.2, +0.25, 0.0, unit_diamond));
+    star_heap.push_back(translate(+0.12, +0.4, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.12, +0.4, 0.0, unit_diamond));
+    star_heap.push_back(translate(+0.05, +0.53, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.05, +0.53, 0.0, unit_diamond));
+    
+    star_heap.push_back(translate(+0.41, +0.14, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.41, +0.14, 0.0, unit_diamond));
+    star_heap.push_back(translate(+0.33, +0.05, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.33, +0.05, 0.0, unit_diamond));
+    star_heap.push_back(translate(+0.25, -0.05, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.25, -0.05, 0.0, unit_diamond));
+    
+    star_heap.push_back(translate(+0.27, -0.21, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.27, -0.21, 0.0, unit_diamond));
+    star_heap.push_back(translate(+0.315, -0.38, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.315, -0.38, 0.0, unit_diamond));
+    
+    star_heap.push_back(translate(+0.21, -0.47, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.21, -0.47, 0.0, unit_diamond));
+    star_heap.push_back(translate(+0.11, -0.38, 0.0, unit_diamond));
+    star_heap.push_back(translate(-0.11, -0.38, 0.0, unit_diamond));
+    
+    star_heap.push_back(translate(-0.00, -0.31, 0.0, unit_diamond));
+    
+    return star_heap;
 }
 
 // Construct the scene using objects built from cubes/prisms
-vector<GLfloat> init_heart() {
-    vector<vector<GLfloat>> heart_cross;
+vector<vector<GLfloat>> init_heart() {
+    vector<vector<GLfloat>> heart_heap;
     vector<GLfloat> unit_obj = scale(0.1, 0.1, 0.1, build_cube());
     
     //center
-    heart_cross.push_back(translate(0.0,0.42,0.0,unit_obj));
-    heart_cross.push_back(translate(0.15,0.64,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.15,0.64,0.0,unit_obj));
-    heart_cross.push_back(translate(0.37,0.79,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.37,0.79,0.0,unit_obj));
-    heart_cross.push_back(translate(0.61,0.84,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.61,0.84,0.0,unit_obj));
-    heart_cross.push_back(translate(0.78,0.63,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.78,0.63,0.0,unit_obj));
-    heart_cross.push_back(translate(0.84,0.415,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.84,0.415,0.0,unit_obj));
-    heart_cross.push_back(translate(0.82,0.19,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.82,0.19,0.0,unit_obj));
-    heart_cross.push_back(translate(0.78,-0.03,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.78,-0.03,0.0,unit_obj));
-    heart_cross.push_back(translate(0.69,-0.25,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.69,-0.25,0.0,unit_obj));
-    heart_cross.push_back(translate(0.6,-0.47,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.6,-0.47,0.0,unit_obj));
-    heart_cross.push_back(translate(0.43,-0.7,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.43,-0.7,0.0,unit_obj));
-    heart_cross.push_back(translate(0.23,-0.92,0.0,unit_obj));
-    heart_cross.push_back(translate(-0.23,-0.92,0.0,unit_obj));
-    heart_cross.push_back(translate(0.0,-1.1,0.0,unit_obj));
+    heart_heap.push_back(translate(0.0,0.42,0.0,unit_obj));
     
+    heart_heap.push_back(translate(0.15,0.64,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.15,0.64,0.0,unit_obj));
+    heart_heap.push_back(translate(0.37,0.79,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.37,0.79,0.0,unit_obj));
+    heart_heap.push_back(translate(0.61,0.84,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.61,0.84,0.0,unit_obj));
+    heart_heap.push_back(translate(0.78,0.63,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.78,0.63,0.0,unit_obj));
+    heart_heap.push_back(translate(0.84,0.415,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.84,0.415,0.0,unit_obj));
+    heart_heap.push_back(translate(0.82,0.19,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.82,0.19,0.0,unit_obj));
+    heart_heap.push_back(translate(0.78,-0.03,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.78,-0.03,0.0,unit_obj));
+    heart_heap.push_back(translate(0.69,-0.25,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.69,-0.25,0.0,unit_obj));
+    heart_heap.push_back(translate(0.6,-0.47,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.6,-0.47,0.0,unit_obj));
+    heart_heap.push_back(translate(0.43,-0.7,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.43,-0.7,0.0,unit_obj));
+    heart_heap.push_back(translate(0.23,-0.92,0.0,unit_obj));
+    heart_heap.push_back(translate(-0.23,-0.92,0.0,unit_obj));
+    heart_heap.push_back(translate(0.0,-1.1,0.0,unit_obj));
+
 //   +1
-    heart_cross.push_back(translate(0.14,0.55,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.14,0.55,0.21,unit_obj));
-    heart_cross.push_back(translate(0.35,0.7,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.35,0.7,0.21,unit_obj));
-    heart_cross.push_back(translate(0.55,0.63,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.55,0.63,0.21,unit_obj));
-    heart_cross.push_back(translate(0.63,0.415,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.63,0.415,0.21,unit_obj));
-    heart_cross.push_back(translate(0.61,0.19,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.61,0.19,0.21,unit_obj));
-    heart_cross.push_back(translate(0.58,-0.03,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.58,-0.03,0.21,unit_obj));
-    heart_cross.push_back(translate(0.47,-0.25,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.47,-0.25,0.21,unit_obj));
-    heart_cross.push_back(translate(0.34,-0.47,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.34,-0.47,0.21,unit_obj));
-    heart_cross.push_back(translate(0.22,-0.7,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.22,-0.7,0.21,unit_obj));
-    heart_cross.push_back(translate(0.1,-0.92,0.21,unit_obj));
-    heart_cross.push_back(translate(-0.1,-0.92,0.21,unit_obj));
+    heart_heap.push_back(translate(0.14,0.55,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.14,0.55,0.21,unit_obj));
+    heart_heap.push_back(translate(0.35,0.7,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.35,0.7,0.21,unit_obj));
+    heart_heap.push_back(translate(0.55,0.63,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.55,0.63,0.21,unit_obj));
+    heart_heap.push_back(translate(0.63,0.415,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.63,0.415,0.21,unit_obj));
+    heart_heap.push_back(translate(0.61,0.19,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.61,0.19,0.21,unit_obj));
+    heart_heap.push_back(translate(0.58,-0.03,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.58,-0.03,0.21,unit_obj));
+    heart_heap.push_back(translate(0.47,-0.25,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.47,-0.25,0.21,unit_obj));
+    heart_heap.push_back(translate(0.34,-0.47,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.34,-0.47,0.21,unit_obj));
+    heart_heap.push_back(translate(0.22,-0.7,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.22,-0.7,0.21,unit_obj));
+    heart_heap.push_back(translate(0.1,-0.92,0.21,unit_obj));
+    heart_heap.push_back(translate(-0.1,-0.92,0.21,unit_obj));
 
 //    -1
-    heart_cross.push_back(translate(0.14,0.55,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.14,0.55,-0.21,unit_obj));
-    heart_cross.push_back(translate(0.35,0.7,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.35,0.7,-0.21,unit_obj));
-    heart_cross.push_back(translate(0.55,0.63,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.55,0.63,-0.21,unit_obj));
-    heart_cross.push_back(translate(0.63,0.415,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.63,0.415,-0.21,unit_obj));
-    heart_cross.push_back(translate(0.61,0.19,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.61,0.19,-0.21,unit_obj));
-    heart_cross.push_back(translate(0.58,-0.03,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.58,-0.03,-0.21,unit_obj));
-    heart_cross.push_back(translate(0.47,-0.25,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.47,-0.25,-0.21,unit_obj));
-    heart_cross.push_back(translate(0.34,-0.47,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.34,-0.47,-0.21,unit_obj));
-    heart_cross.push_back(translate(0.22,-0.7,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.22,-0.7,-0.21,unit_obj));
-    heart_cross.push_back(translate(0.1,-0.92,-0.21,unit_obj));
-    heart_cross.push_back(translate(-0.1,-0.92,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.14,0.55,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.14,0.55,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.35,0.7,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.35,0.7,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.55,0.63,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.55,0.63,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.63,0.415,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.63,0.415,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.61,0.19,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.61,0.19,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.58,-0.03,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.58,-0.03,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.47,-0.25,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.47,-0.25,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.34,-0.47,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.34,-0.47,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.22,-0.7,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.22,-0.7,-0.21,unit_obj));
+    heart_heap.push_back(translate(0.1,-0.92,-0.21,unit_obj));
+    heart_heap.push_back(translate(-0.1,-0.92,-0.21,unit_obj));
  
     
 //    +2
-    heart_cross.push_back(translate(0.15,0.5,0.36,scale(1.0,1.0,0.5,unit_obj)));
-    heart_cross.push_back(translate(-0.15,0.5,0.36,scale(1.0,1.0,0.5,unit_obj)));
-    heart_cross.push_back(translate(0.4,0.42,0.32,unit_obj));
-    heart_cross.push_back(translate(-0.4,0.42,0.32,unit_obj));
-    heart_cross.push_back(translate(0.43,0.19,0.32,unit_obj));
-    heart_cross.push_back(translate(-0.43,0.19,0.32,unit_obj));
-    heart_cross.push_back(translate(0.38,-0.03,0.32,unit_obj));
-    heart_cross.push_back(translate(-0.38,-0.03,0.32,unit_obj));
-    heart_cross.push_back(translate(0.27,-0.25,0.32,unit_obj));
-    heart_cross.push_back(translate(-0.27,-0.25,0.32,unit_obj));
-    heart_cross.push_back(translate(0.14,-0.47,0.32,unit_obj));
-    heart_cross.push_back(translate(-0.14,-0.47,0.32,unit_obj));
-    heart_cross.push_back(translate(0.0,-0.7,0.32,unit_obj));
+    heart_heap.push_back(translate(0.15,0.5,0.36,scale(1.0,1.0,0.5,unit_obj)));
+    heart_heap.push_back(translate(-0.15,0.5,0.36,scale(1.0,1.0,0.5,unit_obj)));
+    heart_heap.push_back(translate(0.4,0.42,0.32,unit_obj));
+    heart_heap.push_back(translate(-0.4,0.42,0.32,unit_obj));
+    heart_heap.push_back(translate(0.43,0.19,0.32,unit_obj));
+    heart_heap.push_back(translate(-0.43,0.19,0.32,unit_obj));
+    heart_heap.push_back(translate(0.38,-0.03,0.32,unit_obj));
+    heart_heap.push_back(translate(-0.38,-0.03,0.32,unit_obj));
+    heart_heap.push_back(translate(0.27,-0.25,0.32,unit_obj));
+    heart_heap.push_back(translate(-0.27,-0.25,0.32,unit_obj));
+    heart_heap.push_back(translate(0.14,-0.47,0.32,unit_obj));
+    heart_heap.push_back(translate(-0.14,-0.47,0.32,unit_obj));
+    heart_heap.push_back(translate(0.0,-0.7,0.32,unit_obj));
     
     //    -2
-    heart_cross.push_back(translate(0.15,0.5,-0.36,scale(1.0,1.0,0.5,unit_obj)));
-    heart_cross.push_back(translate(-0.15,0.5,-0.36,scale(1.0,1.0,0.5,unit_obj)));
-    heart_cross.push_back(translate(0.4,0.42,-0.32,unit_obj));
-    heart_cross.push_back(translate(-0.4,0.42,-0.32,unit_obj));
-    heart_cross.push_back(translate(0.43,0.19,-0.32,unit_obj));
-    heart_cross.push_back(translate(-0.43,0.19,-0.32,unit_obj));
-    heart_cross.push_back(translate(0.38,-0.03,-0.32,unit_obj));
-    heart_cross.push_back(translate(-0.38,-0.03,-0.32,unit_obj));
-    heart_cross.push_back(translate(0.27,-0.25,-0.32,unit_obj));
-    heart_cross.push_back(translate(-0.27,-0.25,-0.32,unit_obj));
-    heart_cross.push_back(translate(0.14,-0.47,-0.32,unit_obj));
-    heart_cross.push_back(translate(-0.14,-0.47,-0.32,unit_obj));
-    heart_cross.push_back(translate(0.0,-0.7,-0.32,unit_obj));
+    heart_heap.push_back(translate(0.15,0.5,-0.36,scale(1.0,1.0,0.5,unit_obj)));
+    heart_heap.push_back(translate(-0.15,0.5,-0.36,scale(1.0,1.0,0.5,unit_obj)));
+    heart_heap.push_back(translate(0.4,0.42,-0.32,unit_obj));
+    heart_heap.push_back(translate(-0.4,0.42,-0.32,unit_obj));
+    heart_heap.push_back(translate(0.43,0.19,-0.32,unit_obj));
+    heart_heap.push_back(translate(-0.43,0.19,-0.32,unit_obj));
+    heart_heap.push_back(translate(0.38,-0.03,-0.32,unit_obj));
+    heart_heap.push_back(translate(-0.38,-0.03,-0.32,unit_obj));
+    heart_heap.push_back(translate(0.27,-0.25,-0.32,unit_obj));
+    heart_heap.push_back(translate(-0.27,-0.25,-0.32,unit_obj));
+    heart_heap.push_back(translate(0.14,-0.47,-0.32,unit_obj));
+    heart_heap.push_back(translate(-0.14,-0.47,-0.32,unit_obj));
+    heart_heap.push_back(translate(0.0,-0.7,-0.32,unit_obj));
     
    
 //    +3
-    heart_cross.push_back(translate(0.15,0.33,0.38,scale(1.0,0.6,1.0,unit_obj)));
-    heart_cross.push_back(translate(-0.15,0.33,0.38,scale(1.0,0.6,1.0,unit_obj)));
-    heart_cross.push_back(translate(0.18,0.16,0.39,unit_obj));
-    heart_cross.push_back(translate(-0.18,0.16,0.39,unit_obj));
-    heart_cross.push_back(translate(0.17,-0.07,0.39,unit_obj));
-    heart_cross.push_back(translate(-0.17,-0.07,0.39,unit_obj));
-    heart_cross.push_back(translate(0.0,-0.27,0.39,unit_obj));
+    heart_heap.push_back(translate(0.15,0.33,0.38,scale(1.0,0.6,1.0,unit_obj)));
+    heart_heap.push_back(translate(-0.15,0.33,0.38,scale(1.0,0.6,1.0,unit_obj)));
+    heart_heap.push_back(translate(0.18,0.16,0.39,unit_obj));
+    heart_heap.push_back(translate(-0.18,0.16,0.39,unit_obj));
+    heart_heap.push_back(translate(0.17,-0.07,0.39,unit_obj));
+    heart_heap.push_back(translate(-0.17,-0.07,0.39,unit_obj));
+    heart_heap.push_back(translate(0.0,-0.27,0.39,unit_obj));
     
-    heart_cross.push_back(translate(0.0,0.155,0.42,scale(0.5,0.95,1.0,unit_obj)));
-    heart_cross.push_back(translate(0.0,-0.06,0.42,scale(0.5,0.9,1.0,unit_obj)));
-    heart_cross.push_back(translate(0.0,0.33,0.4,scale(0.5,0.5,1.0,unit_obj)));
+    heart_heap.push_back(translate(0.0,0.155,0.42,scale(0.5,0.95,1.0,unit_obj)));
+    heart_heap.push_back(translate(0.0,-0.06,0.42,scale(0.5,0.9,1.0,unit_obj)));
+    heart_heap.push_back(translate(0.0,0.33,0.4,scale(0.5,0.5,1.0,unit_obj)));
 
     //    -3
-    heart_cross.push_back(translate(0.15,0.33,-0.38,scale(1.0,0.6,1.0,unit_obj)));
-    heart_cross.push_back(translate(-0.15,0.33,-0.38,scale(1.0,0.6,1.0,unit_obj)));
-    heart_cross.push_back(translate(0.18,0.16,-0.39,unit_obj));
-    heart_cross.push_back(translate(-0.18,0.16,-0.39,unit_obj));
-    heart_cross.push_back(translate(0.17,-0.07,-0.39,unit_obj));
-    heart_cross.push_back(translate(-0.17,-0.07,-0.39,unit_obj));
-    heart_cross.push_back(translate(0.0,-0.27,-0.39,unit_obj));
+    heart_heap.push_back(translate(0.15,0.33,-0.38,scale(1.0,0.6,1.0,unit_obj)));
+    heart_heap.push_back(translate(-0.15,0.33,-0.38,scale(1.0,0.6,1.0,unit_obj)));
+    heart_heap.push_back(translate(0.18,0.16,-0.39,unit_obj));
+    heart_heap.push_back(translate(-0.18,0.16,-0.39,unit_obj));
+    heart_heap.push_back(translate(0.17,-0.07,-0.39,unit_obj));
+    heart_heap.push_back(translate(-0.17,-0.07,-0.39,unit_obj));
+    heart_heap.push_back(translate(0.0,-0.27,-0.39,unit_obj));
     
-    heart_cross.push_back(translate(0.0,0.155,-0.42,scale(0.5,0.95,1.0,unit_obj)));
-    heart_cross.push_back(translate(0.0,-0.06,-0.42,scale(0.5,0.9,1.0,unit_obj)));
-    heart_cross.push_back(translate(0.0,0.33,-0.4,scale(0.5,0.5,1.0,unit_obj)));
+    heart_heap.push_back(translate(0.0,0.155,-0.42,scale(0.5,0.95,1.0,unit_obj)));
+    heart_heap.push_back(translate(0.0,-0.06,-0.42,scale(0.5,0.9,1.0,unit_obj)));
+    heart_heap.push_back(translate(0.0,0.33,-0.4,scale(0.5,0.5,1.0,unit_obj)));
+    
 
     vector<GLfloat> scene;
-    for (int i = 0; i < heart_cross.size(); i++) {
-        vector<GLfloat> curVec = heart_cross[i];
-        for (int j = 0; j < curVec.size(); j++) {
-            scene.push_back(curVec[j]);
-        }
-    }
+//    for (int i = 0; i < heart_heap.size(); i++) {
+//        vector<GLfloat> curVec = heart_heap[i];
+//        for (int j = 0; j < curVec.size(); j++) {
+//            scene.push_back(curVec[j]);
+//        }
+//    }
     scene = translate(1.2, -0.6, -2.4, scale(0.4, 0.4, 0.4, scene));
-    return scene;
+    return heart_heap;
 }
 
 // Construct the scene using objects built from cubes/prisms
 void spin_heart(double theta) {
-    heartVerts = translate(1.2, -0.6, -2.4, rotate('y',theta,translate(-1.2, 0.6, 2.4, heartVerts)));
-    vertices = vector2array(heartVerts);
-    //return cubeVerts;
+    heart_Vector = translate(1.2, -0.6, -2.4, rotate('y',theta,translate(-1.2, 0.6, 2.4, heart_Vector)));
+    heart_vertices = vector2array(heart_Vector);
 }
 
+void jump_heart() {
+    h = (5*star_point) - (star_point*star_point*star_point)/3;
+    
+//    star_Vector = translate(-0.0,(h/1500),0.0,star_Vector);
+    
+//    if (star_point < 2.236) {
+//        star_point += 0.01;
+//    } else if (star_point > -2.236){
+//        star_point -= 0.01;
+//    }
+    
+    GLfloat t = (GLfloat) sin((star_point++)/10); // + sin((star_point++)/1000);
+    star_Vector = translate(-0.0,(t/15),0.0,star_Vector);
+//    star_Vector = translate(-0.8,0.2,0.4, rotate('y',theta,translate(-1.2, 0.6, 2.4, star_Vector)));
+    
+    star_vertices = vector2array(star_Vector);
+}
 
-// Construct the color mapping of the scene
-GLfloat* init_color(vector<GLfloat> vertices) {
-    GLfloat* arr = new GLfloat[vertices.size()];
-    int j = 0;
-//    std::cout<<vertices.size()<<"\n";
+void bounce_star(double y){
+    
+}
+
+vector<GLfloat> single_concat (vector<GLfloat> A, vector<GLfloat> B){
+    for (int i = 0; i < B.size(); i++) {
+        A.push_back(B[i]);
+    }
+    return A;
+}
+
+vector<GLfloat> init_color_vec (vector<GLfloat> vertices, vector<GLfloat> RGB ) {
+    vector<GLfloat> result;
     for (int i = 0; i < vertices.size(); i++) {
+        for (int j = 0; j < 3; j++) {
+            result.push_back(RGB[j]);
+        }
+    }
+    return result;
+}
+
+GLfloat* texturize(GLfloat colorArr[], int m) {
+    GLfloat* result = new GLfloat[m];
+    
+    for (int i = 0; i < m; i++) {
         double iRand = rand() % 300;
         GLfloat iNoise = (float) (iRand/1000) + 0.75;
-        arr[i] = colorOR[j%3]*iNoise;
-        j++;
+        result[i] = colorArr[i]*iNoise;
+
     }
     
-    return arr;
+    return result;
 }
 
 void display_func() {
@@ -507,8 +665,12 @@ void display_func() {
     // World model parameters
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    
     spin_heart(5);
-//    glRotatef(theta/3, 0.0, 1.0, 0.0);
+    jump_heart();
+    
+    
+    glRotatef(theta/3, 0.0, 1.0, 0.0);
 //    glRotatef(theta/2, 1.0, 0.0, 0.0);
     
     // Perform display functions
@@ -516,22 +678,37 @@ void display_func() {
     glVertexPointer(3,          // 3 components (x, y, z)
                     GL_FLOAT,   // Vertex type is GL_FLOAT
                     0,          // Start position in referenced memory
-                    vertices);  // Pointer to memory location to read from
+                    heart_vertices);  // Pointer to memory location to read from
     
     //pass the color pointer
     glColorPointer(3,           // 3 components (r, g, b)
                    GL_FLOAT,    // Vertex type is GL_FLOAT
                    0,           // Start position in referenced memory
-                   paint);     // Pointer to memory location to read from
+                   heart_paint);     // Pointer to memory location to read from
 
-    glDrawArrays(GL_QUADS, 0, numPoints);
+    glDrawArrays(GL_QUADS, 0, num_heart_Points);
+    
+    glVertexPointer(3,          // 3 components (x, y, z)
+                    GL_FLOAT,   // Vertex type is GL_FLOAT
+                    0,          // Start position in referenced memory
+                    star_vertices);  // Pointer to memory location to read from
+    
+    //pass the color pointer
+    glColorPointer(3,           // 3 components (r, g, b)
+                   GL_FLOAT,    // Vertex type is GL_FLOAT
+                   0,           // Start position in referenced memory
+                   star_paint);     // Pointer to memory location to read from
+    
+    glDrawArrays(GL_TRIANGLES, 0, num_star_Points);
+    
+    
     glFlush();			//Finish rendering
     glutSwapBuffers();
 }
 
 
 void idle_func() {
-//    theta = theta+1.0;
+    theta = theta+1.0;
     display_func();
 }
 //****************************************************************************************
@@ -543,11 +720,32 @@ int main (int argc, char **argv) {
     // Remember to call "delete" on your dynmically allocated arrays
     // such that you don't suffer from memory leaks. e.g.
     // delete arr;
-    heartVerts = init_heart();
-    numPoints = (int)heartVerts.size()/3;
+    
+    // draw heart
+    heart_Vector = double_to_single(init_heart());
+    heart_Vector = translate(1.2, -0.6, -2.4, scale(0.4, 0.4, 0.4, heart_Vector));
+    
+    num_heart_Points = (int)heart_Vector.size()/3;
+    vector<GLfloat> heart_color_vec = init_color_vec(heart_Vector, colorOR);
+    
+
+    heart_paint = vector2array(heart_color_vec);
+    heart_paint = texturize(heart_paint, (num_heart_Points*3));
+    heart_vertices = vector2array(heart_Vector);
+    
+    
+    star_Vector = double_to_single(init_star());
+    star_Vector = translate(-0.8,0.2,0.4,scale(0.6,0.6,0.6,star_Vector));
+    //star_Vector = build_diamond();
+    num_star_Points = (int) star_Vector.size()/3;
+    vector<GLfloat> star_color_vec = init_color_vec(star_Vector, colorYE);
+    star_paint = vector2array(star_color_vec);
+    star_paint = texturize(star_paint, (num_star_Points*3));
+    star_vertices = vector2array(star_Vector);
+
+    
     std::cout<<numPoints<<"\n";
-    vertices = vector2array(heartVerts);
-    paint = init_color(heartVerts);
+
     // Initialize GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -564,7 +762,38 @@ int main (int argc, char **argv) {
     
     // Render our world
     glutMainLoop();
-    delete[] vertices;
-    delete[] paint;
+    delete[] heart_vertices;
+    delete[] heart_paint;
+    delete[] star_vertices;
+    delete[] star_paint;
     return 0;
 }
+
+
+/*
+ //    scene_vertices = vector2array(scene_Vector);
+ //    paint = init_color(scene_Vector, colorOR);
+ 
+ 
+ // draw heart
+ vector<vector<GLfloat>> heart_double_vec = init_heart();
+ vector<GLfloat> heart_vec = double_to_single(heart_double_vec);
+ heart_vec = translate(1.2, -0.6, -2.4, scale(0.4, 0.4, 0.4, heart_vec));
+ 
+ // color heart
+ vector<GLfloat> heart_color_vec = init_color_vec(heart_vec, colorOR);
+ 
+ // draw star
+ vector<vector<GLfloat>> star_double_vec = init_star();
+ vector<GLfloat> star_vec = double_to_single(star_double_vec);
+ // color star
+ vector<GLfloat> star_color_vec = init_color_vec(star_vec, colorYE);
+ 
+ scene_Vector = single_concat(heart_vec, star_vec);
+ scene_vertices = vector2array(scene_Vector);
+ numPoints = (int)scene_Vector.size()/3;
+ paint = vector2array(single_concat(heart_color_vec, star_color_vec));
+ 
+ paint = texturize(paint, (numPoints*3));
+ 
+*/
